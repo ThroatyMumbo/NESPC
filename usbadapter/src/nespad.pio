@@ -1,0 +1,125 @@
+; nespad: a word out on D3, D4, D0, open drain, 3 bits a /OE rise (kbdstream); OUT0 high reloads it.
+; A read with OUT0 high starts an upstream byte: OUT0 at the next 8 reads, LSB first.
+
+.program nespad
+.pio_version 1
+.define public UP_TAG 0x00ffffff ; an upstream byte's push: the byte in bits 24-31 over these 1s
+
+.wrap_target
+idle:
+    pull noblock            ; the newest word, or X again
+    mov x, osr
+    mov y, pins             ; IN base = OUT0, IN_COUNT 1
+    jmp !y idle
+load:
+    mov osr, x              ; also restarts the shift count
+    out pindirs, 3 [31]     ; read 0, held through the strobe; the delays after data changes skip their crosstalk on CLK
+strobe:
+    jmp pin held            ; JMP pin = /OE
+    jmp up
+held:
+    mov y, pins
+    jmp y-- strobe
+poll:
+    mov y, pins
+    jmp y-- load            ; strobed again: start over
+    jmp pin poll            ; /OE high
+    wait 1 jmppin           ; the read ends; a 4021 shifts here
+    jmp !osre shift
+    mov isr, x
+    push noblock            ; tells the CPU which word the NES took
+    set pindirs, 7
+.wrap
+shift:
+    out pindirs, 3 [31]     ; 213 ns at 150 MHz; a 1 dropped mid-word (0B 50 00 80 for 4B A0 00 00) without it
+    jmp poll
+
+up:
+    mov isr, ~null
+    set y, 7
+    wait 1 jmppin
+up_bit:
+    wait 0 jmppin           ; the NES set OUT0 before this read
+    in pins, 1
+    wait 1 jmppin
+    jmp y-- up_bit
+    push noblock
+    jmp idle
+
+% c-sdk {
+#include "hardware/clocks.h"
+#include "hardware/gpio.h"
+
+// pin_data: D3, then D4 and D0 above it; nbits = bits a word; no pulls, the NES pulls the data lines up
+static inline void nespad_program_init(PIO pio, uint sm, uint offset, uint pin_data, uint pin_out0, uint pin_oe,
+                                       uint nbits) {
+    for (uint i = 0; i < 3; i++) {
+        pio_gpio_init(pio, pin_data + i);
+        gpio_disable_pulls(pin_data + i);
+    }
+    gpio_init(pin_out0);
+    gpio_disable_pulls(pin_out0);
+    gpio_init(pin_oe);
+    gpio_disable_pulls(pin_oe);
+
+    pio_sm_config c = nespad_program_get_default_config(offset);
+    sm_config_set_in_pins(&c, pin_out0);
+    sm_config_set_in_pin_count(&c, 1);
+    sm_config_set_jmp_pin(&c, pin_oe);
+    sm_config_set_out_pins(&c, pin_data, 3);
+    sm_config_set_set_pins(&c, pin_data, 3);
+    sm_config_set_out_shift(&c, true, false, nbits);
+    sm_config_set_in_shift(&c, true, false, 32);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_data, 3, false);
+    pio_sm_init(pio, sm, offset, &c);
+
+    // open drain: the output latch stays 0, so pindir 1 drives low
+    pio_sm_exec(pio, sm, pio_encode_set(pio_pins, 0));
+    pio_sm_exec(pio, sm, pio_encode_mov(pio_x, pio_null));
+}
+%}
+
+; nesstream: the speed test's down pass (bench.h), X + 1 reads of 3 bits after one strobe, autopulled 10 reads a word;
+; pushes 0 as the first read starts and ~0 as the last ends. Its own PIO: nespad leaves too few instructions.
+.program nesstream
+.pio_version 1
+
+    wait 1 pin 0            ; IN base = OUT0
+    wait 0 pin 0
+    mov y, x
+    out x, 3
+    mov pins, ~x [31]
+    mov pindirs, x [31]
+    wait 0 jmppin
+    mov isr, null
+    push noblock
+read:
+    wait 1 jmppin
+    jmp y-- more
+    set pins, 0
+    set pindirs, 7
+    mov isr, ~null
+    push noblock
+halt:
+    jmp halt
+more:
+    out x, 3
+    mov pins, ~x [31]       ; a line let go is driven high first: the NES's pull-up alone takes over 2 us
+    mov pindirs, x [31]     ; past CLK's crosstalk, as nespad
+    wait 0 jmppin
+    jmp read
+
+% c-sdk {
+static inline void nesstream_program_init(PIO pio, uint sm, uint offset, uint pin_data, uint pin_out0, uint pin_oe) {
+    pio_sm_config c = nesstream_program_get_default_config(offset);
+    sm_config_set_in_pins(&c, pin_out0);
+    sm_config_set_in_pin_count(&c, 1);
+    sm_config_set_jmp_pin(&c, pin_oe);
+    sm_config_set_out_pins(&c, pin_data, 3);
+    sm_config_set_set_pins(&c, pin_data, 3);
+    sm_config_set_out_shift(&c, true, true, 30);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_exec(pio, sm, pio_encode_set(pio_pins, 0));
+    pio_sm_exec(pio, sm, pio_encode_set(pio_pindirs, 0));
+}
+%}

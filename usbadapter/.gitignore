@@ -1,0 +1,5 @@
+build/
+lib/
+flash.env
+test/test_keymap
+test/test_mouse
