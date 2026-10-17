@@ -1,4 +1,4 @@
-// The port 2 speed test (desk/speedtest, docs/adapter-link.md): a known pattern down in the layout of one of the
+// The port 2 speed test (tests/speedtest): a known pattern down in the layout of one of the
 // NES's decoders, and up through the link, timed here.
 #ifndef BENCH_H
 #define BENCH_H

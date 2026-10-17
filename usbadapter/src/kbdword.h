@@ -13,7 +13,7 @@
 #define KBDWORD_RAW   0x90 // raw mode (LINK_RAWKEYS): a HID usage going down or up
 #define KBDWORD_KEY   0xA0 // tags, the high nibble of byte 1; a pad reads $F0 there, an empty port $00
 #define KBDWORD_MOUSE 0xB0
-#define KBDWORD_REPLY 0xC0 // a byte from the adapter's link (docs/adapter-link.md)
+#define KBDWORD_REPLY 0xC0 // a byte from the adapter's link
 #define KBDWORD_MIDI  0xD0 // a MIDI keyboard's note on or off
 #define KBDWORD_SYS   0xE0 // a system request to the running program, payload SYS_*
 #define KBDWORD_D_MAX 63   // a mouse word's dx, dy are 7-bit signed

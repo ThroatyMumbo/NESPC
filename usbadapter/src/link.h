@@ -1,4 +1,4 @@
-// Commands the NES sends upstream: cmd, len, len bytes (docs/adapter-link.md); answers go back as reply words.
+// Commands the NES sends upstream: cmd, len, len bytes; answers go back as reply words.
 #ifndef LINK_H
 #define LINK_H
 
