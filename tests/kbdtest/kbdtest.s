@@ -103,16 +103,16 @@ rbaLabels:
 ; column, row, color, text
 rbaText:
 .byte 1, 1, C_WHITE, "FAMILY BASIC KEYBOARD", 0
-.byte 23, 1, C_GREY, "RISE", 0
+.byte 23, 1, C_GRAY, "RISE", 0
 .byte 0, 2, C_WHITE, "C0 $4016=$04", 0
 .byte 16, 2, C_WHITE, "C1 $4016=$06", 0
-.byte 0, 3, C_GREY, "D1  D2  D3  D4  D1  D2  D3  D4", 0
+.byte 0, 3, C_GRAY, "D1  D2  D3  D4  D1  D2  D3  D4", 0
 .byte 0, STATIC_Y, C_WHITE, "$4016 =  0  1  2  3  4  5  6  7", 0
 .byte 0, STATIC_Y + 1, C_WHITE, "$4017 =", 0
 .byte 0, EVENTS_Y, C_WHITE, "EVENTS", 0
 .byte 13, EVENTS_Y, C_WHITE, "LOST", 0
 .byte 0, PORT2_Y, C_WHITE, "PORT 2", 0
-.byte 24, PORT2_Y, C_GREY, "SEQ", 0
+.byte 24, PORT2_Y, C_GRAY, "SEQ", 0
 .byte 0, TYPED_Y, C_WHITE, "TYPED", 0
 .byte $ff
 .assert * - rbaText <= 256, error, "text indexes off X"
@@ -307,7 +307,7 @@ cell:
     and zbT
     beq pressed
     ldx #C_BLACK
-    lda #C_GREY
+    lda #C_GRAY
     bne :+
 pressed:
     lda #C_BLACK

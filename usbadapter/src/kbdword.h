@@ -1,4 +1,4 @@
-// The 32-bit word the NES reads off port 2 (elks/nes/src/keyboard/adapter.s): signature, tag | seq, two payload bytes;
+// The 32-bit word the NES reads off port 2 (nes/src/keyboard/adapter.s): signature, tag | seq, two payload bytes;
 // it goes out over D0, D3 and D4 together (kbdstream).
 #ifndef KBDWORD_H
 #define KBDWORD_H

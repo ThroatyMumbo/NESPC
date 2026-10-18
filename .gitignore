@@ -8,10 +8,11 @@ target/
 build/
 __pycache__/
 incremental_db/
+output_files/
 db/
 qdb/
 backup/
-quartus/
+rtl/base/
 elks-src/
 elks/sim/
 out/

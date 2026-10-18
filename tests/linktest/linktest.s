@@ -51,7 +51,7 @@ rsLost:  .asciiz "RESENT   $"
 
 rbaStateLo: .byte <rsWait, <rsOk, <rsQuiet, <rsBad
 rbaStateHi: .byte >rsWait, >rsOk, >rsQuiet, >rsBad
-rbaStateFg: .byte C_GREY, C_ACCENT, C_WHITE, C_WHITE
+rbaStateFg: .byte C_GRAY, C_ACCENT, C_WHITE, C_WHITE
 
 .segment "CODE"
 
@@ -179,7 +179,7 @@ counts:
     lda zbFrame
     and #7
     bne done
-    lda #C_GREY
+    lda #C_GRAY
     sta zbFg
     lda #48
     sta zbT

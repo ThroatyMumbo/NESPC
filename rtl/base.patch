@@ -1,0 +1,49 @@
+--- a/everdrive.sv
++++ b/everdrive.sv
+@@ -65,3 +65,4 @@
+ 	assign mai.fds_sw 		= !fds_sw;
+-	assign mai.map_rst 		= cfg.map_idx == 255 | !cfg.ct_unlock | map_rst_req;
++	reg menu_hold;
++	assign mai.map_rst 		= cfg.map_idx == 255 | !cfg.ct_unlock | map_rst_req | menu_hold;
+ 	assign mai.prg_do			= prg_dato;
+@@ -196,4 +197,8 @@
+ 	//game mappers
+ 	MapOut map_out_game;
++	// NESPC: game mapper asked for the menu; hold the menu mapper in until the menu acknowledges
++	always @(posedge mai.clk)
++		if (cfg.map_idx == 255) menu_hold <= 0;
++		else if (map_out_game.menu_req) menu_hold <= 1;
+ 	map_hub(
+ 		.mai(mai),
+@@ -320,2 +325,13 @@
+ 	);
++`else
++	// No save states: host reads and writes of 0x1802000+n reach the mapper (we/addr/dato are spi_clk domain).
++	assign sst_ce_cpu		= 0;
++	assign sst_do			= map_out_game.sst_di;
++	assign mai.sst.addr	= pi.addr[12:0];
++	assign mai.sst.act	= 0;
++	assign mai.sst.act_mc	= 0;
++	assign mai.sst.we		= pi.map.ce_sst & pi.we & pi.act;
++	assign mai.sst.we_reg	= 0;
++	assign mai.sst.we_mem	= 0;
++	assign mai.sst.dato	= pi.dato;
+ `endif
+--- a/map_255.sv
++++ b/map_255.sv
+@@ -26,2 +26,3 @@
+ 	assign mao.prg_mask_off = 1;
++	assign mao.menu_req		= 0;
+ 	assign mao.mir_4sc		= 1;//enable support for 4-screen mirroring. for activation should be ensabled in cfg also
+--- a/map_nom.sv
++++ b/map_nom.sv
+@@ -68,2 +68,3 @@
+ 	assign mao.irq				= 0;
++	assign mao.menu_req		= 0;
+ //************************************************************* mapper implementation
+--- a/structs.sv
++++ b/structs.sv
+@@ -69,2 +69,3 @@
+ 	bit led;
++	bit menu_req;//NESPC: hand the cart back to the menu (sticky until the menu takes map_idx 255)
+ 	bit [15:0]snd;

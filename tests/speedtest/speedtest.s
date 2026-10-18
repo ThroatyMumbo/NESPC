@@ -95,7 +95,7 @@ rbaLabelLo: .byte <rsLabel0, <rsLabel1, <rsLabel2
 rbaLabelHi: .byte >rsLabel0, >rsLabel1, >rsLabel2
 rbaVerdictLo: .byte <rsOk, <rsBad, <rsNone
 rbaVerdictHi: .byte >rsOk, >rsBad, >rsNone
-rbaVerdictFg: .byte C_ACCENT, C_WHITE, C_GREY
+rbaVerdictFg: .byte C_ACCENT, C_WHITE, C_GRAY
 
 .segment "LOW"
 
@@ -176,7 +176,7 @@ chunk:
     jsr print
     lda #0
     sta zbBig
-    lda #C_GREY
+    lda #C_GRAY
     sta zbFg
     lda #8
     sta zbT
@@ -414,7 +414,7 @@ test:
 
     lda #0
     sta zbBig
-    lda #C_GREY
+    lda #C_GRAY
     sta zbFg
     lda #8
     sta zbT
